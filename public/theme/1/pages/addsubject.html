@@ -1,0 +1,189 @@
+<script>
+    $(()=>{
+        //Promise函数
+        let show = (urls)=>{
+           return new Promise((resolve, reject)=>{
+                $.getJSON(urls,(data)=>{
+                    if(data.length>1){
+                        resolve(data);
+                    }else{
+                        let err = '未拿到数据';
+                        reject(err);
+                    }
+                });
+           });
+        };
+
+        //给下拉框赋值
+        const stype = show('/subjecttype/query');
+        const sept  = show('/epartment/query');
+        const sll   = show('/subjectlevel/query');
+        const stops  = show('/topic/query');
+        Promise.all([stype, sept, sll, stops]).then((data)=>{
+            let key = ['realName', 'name', 'realName', 'title']
+            data.forEach((item, indes)=>{
+                    item.forEach((ntem, nndes, arr)=>{
+                        let newopt = '<option value="'+ntem.id+'">'+ntem[key[indes]]+'</option>';
+                        $('.selects').eq(indes).append(newopt);
+                    });
+            }); 
+        }).catch((err)=>{
+            alert(err);
+        });
+        //为类型下拉绑定事件
+        $('#selects1').on('change', (ele)=>{   
+            switch($('#selects1').val()){
+                case '1':
+                    $('.Answeroptions').css('display','block');
+                    $('.Answerpart_left input').removeAttr('checked');                                
+                    $('.Answerpart_left input').attr('type', 'radio');
+                    break;
+                case '2':
+                    $('.Answeroptions').css('display','block');                
+                    $('.Answerpart_left input').removeAttr('checked');                
+                    $('.Answerpart_left input').attr('type', 'checkbox');
+                    break;
+                case '3':
+                    $('.Answeroptions').css('display','none');
+                    break;
+            }   
+        });    
+        $('.btnR').on('click', (ele)=>{
+            let obj = {};
+            let objs = {};
+            let content;
+            let correct;
+            let key = ['stem', 'analysis', 'answer'];
+            //获取题目对象
+            $('#form1').serializeArray().forEach((item, indes)=>{
+                obj[item.name] = item.value;});             
+            $('.Problemcontent textarea').map((index, item)=>{
+                return $(item).val();
+            }).toArray().forEach((item, indes)=>{
+                obj[key[indes]] = item;
+            });
+            obj.checkState = '未审核';
+            //获取选项对象
+            content = $('.Answerpart_right textarea').map((index, item)=>{
+                return $(item).val();
+            }).toArray();
+            correct = $('.Answercontent input').map((index, item)=>{
+                if($(item).prop("checked")){
+                    return 1;
+                }else{
+                    return 0;
+                }
+            });
+            $.post('/subject/addSave', obj,(rels)=>{
+                console.log(rels);
+                if(rels.affectedRows){
+                    // $('#tck').popover('show');
+                    content.forEach((item, index)=>{
+                         $.post('/choice/addSave', {"content":item,"correct":correct[index],"subject_id":rels.insertId});                        
+                    });
+                    if($(ele.target).attr('as') === 'gbs'){
+                        $('.right').load('/theme/1/pages/showsubject.html');
+                    }else{
+                        $('.right').load('/theme/1/pages/addsubject.html');
+                    }
+                }else{
+                    $('#tck').attr('data-content', '保存失败')
+                    $('#tck').popover('show');
+                }
+                
+            });
+            ele.preventDefault();
+        });
+        $('#black').off();
+        $('#black').on('click', (ele)=>{
+            $('.right').load('/theme/1/pages/showsubject.html');
+            ele.preventDefault();
+        });
+        
+    });
+</script>
+
+<div class="editingarea">
+    <div class="c_flex"><span class="c_flexible"></span></div>
+    <div class="Topictitle"><div id="black" style="float:right;padding-right:10px;"><a href="">X</a></div></div>
+    <div class="xiala">
+        <form action="" id="form1">
+            <div class="col-sm-3">
+                  <label for="selects1">类型</label>
+                  <select class="form-control selects" name="subjectType_id" id="selects1" >
+                  </select>
+            </div>
+            <div class="col-sm-3">
+                    <label for="selects2">方向</label>                    
+                    <select class="form-control selects" name="epartment_id" id="selects2">
+                    </select>
+            </div>
+            <div class="col-sm-3">
+                    <label for="selects3">难度</label>                    
+                    <select class="form-control selects" name="subjectLevel_id" id="selects3" >
+                    </select>
+            </div>
+            <div class="col-sm-3">
+                <label for="selects4">知识点</label>                    
+                <select class="form-control selects" name="topic_id" id="selects4" >
+                </select>
+            </div>
+        </form> 
+    </div>
+    <div class="clear"></div>
+    <div class="c_editview">
+        <div class="Problem">
+            <div class="Attributetit">题目题干</div>
+            <div class="Problemcontent">
+                    <textarea  class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="Answeroptions">
+            <div class="Attributetit">答案选项<em>(通过勾选每个选项下面的框难吃时间点咳嗽打开)</em></div>
+            <div class="c_condition"><span class="icon_add"><em class="icon_r" style="float: left">添加选项</em></span></div>
+            <div class="Answercontent">
+                  <div class="Answerpart">
+                     <div class="Answerpart_left">
+                         <p>A</p><span><input type="radio" name="choir" /></span>
+                     </div>
+                     <div class="Answerpart_right"><textarea class="form-control" rows="3"></textarea></div>
+                     <div class="clear"></div>
+                  </div>
+                <div class="Answerpart">
+                    <div class="Answerpart_left">
+                        <p>B</p><span><input type="radio" name="choir" /></span>
+                    </div>
+                    <div class="Answerpart_right"><textarea class="form-control" rows="3"></textarea></div>
+                    <div class="clear"></div>
+                </div>
+                <div class="Answerpart">
+                    <div class="Answerpart_left">
+                        <p>C</p><span><input type="radio" name="choir" /></span>
+                    </div>
+                    <div class="Answerpart_right"><textarea class="form-control" rows="3"></textarea></div>
+                    <div class="clear"></div>
+                </div>
+                <div class="Answerpart">
+                    <div class="Answerpart_left">
+                        <p>D</p><span><input type="radio" name="choir" /></span>
+                    </div>
+                    <div class="Answerpart_right"><textarea class="form-control" rows="3"></textarea></div>
+                    <div class="clear"></div>
+                </div>
+                  <div class="clear"></div>
+            </div>
+        </div>
+        <div class="Problem">
+            <div class="Attributetit">解析</div>
+            <div class="Problemcontent"><textarea  class="form-control" rows="3"></textarea></div>
+        </div>
+        <div class="Problem">
+            <div class="fistproblm"><span>答案</span><a href="#"></a></div>
+            <div class="Problemcontent"><textarea  class="form-control" rows="3"></textarea></div>
+        </div>
+        <div class="btn_left">
+            <span class="btnL"><em class="btnR">保存并继续</em></span><span class="btnL"><em class="btnR" as='gbs'>保存并关闭</em></span>
+        </div>
+    </div>
+</div>
+<a id="tck" tabindex="0" style="position: fixed;right: 30px;top: 0px;" role="button" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="And here's some amazing content. It's very engaging. Right?">可消失的弹出框</a>

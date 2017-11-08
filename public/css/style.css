@@ -1,0 +1,50 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+h1,h2,h3,h4{
+  padding: 0;
+  margin: 0;
+}
+a {
+  color: #00B7FF;
+}
+ul li{
+  list-style: none;
+}
+.uls li a{
+  text-decoration: none;
+}
+header.header {
+  border-bottom: 2px solid #ccc;
+  height: 100px;
+}
+
+article.container {
+  overflow: hidden;
+}
+
+section.navleft {
+  float: left;
+  width: 165px;
+  border-right: 2px solid #ccc;
+}
+section.content {
+  margin-right: 165px;
+  padding: 10px;
+  overflow-y: scroll;
+}
+section.content .searchs{
+  float: right;
+}
+section.content form{
+    /*opacity: 0;*/
+    display: none;
+}
+section.content h4{
+  display: inline-block;
+}
+footer.footer{
+  border-top: 1px solid #ccc;
+  height: 50px;
+}
